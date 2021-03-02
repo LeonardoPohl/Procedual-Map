@@ -1,12 +1,12 @@
 import numpy as np
 from helper.utilities import offset_out_of_bounds
 
-class waterMap:
-  def __init__(self, X, Y, terrain):
-    self.X = X
-    self.Y = Y
+class Water:
+  def __init__(self, terrain):
     self.terrain = terrain
-    self.water_map = np.zeros((X,Y))
+    self.X = terrain.height_map.shape[0]
+    self.Y = terrain.height_map.shape[1]
+    self.water_map = np.zeros_like(terrain.height_map)
 
   def generate_rivers(self, n):
     for i in range(n):
@@ -35,7 +35,7 @@ class waterMap:
         for l in [-1, 0, 1]:
           if not offset_out_of_bounds(calculating, [k,l], self.X, self.Y) and not (k == 0 and l == 0):
             pt_height = self.terrain.height_map[calculating[0] + k][calculating[1] + l]# + self.water_map[calculating[0] + k][calculating[1] + l]
-            if [calculating[0] + k, calculating[1] + l] not in calculaded and (curr_height > pt_height + epsilon or not is_lake):
+            if [calculating[0] + k, calculating[1] + l] not in calculaded and (curr_height > pt_height + epsilon or not is_lake) and self.water_map[calculating[0]][calculating[1]] > 0:
               if not to_calculate:
                 new_to_calculate.append([[calculating[0] + k, calculating[1] + l], curr_height - pt_height])
               elif list([calculating[0] + k, calculating[1] + l]) not in list(np.array(to_calculate)[:,0]):
