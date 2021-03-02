@@ -1,36 +1,46 @@
-from utilities import offset_out_of_bounds
 from PIL import Image
+import numpy as np
 
-class visulizer:
-  def __init__(self, max_X, max_Y, shadow_val):
-    self.X = max_X
-    self.Y = max_Y
+from helper.utilities import offset_out_of_bounds
+from features.TerrainMap import Terrain
+from features.WaterMap import Water
+from features.HumidityMap import Humidity
+
+from os import getcwd
+
+class Visulizer:
+  def __init__(self, X, Y, terrain:Terrain=None, water:Water=None, humidity:Humidity=None, shadow_val:int = 50):
+    self.height_map = terrain.height_map if terrain else np.zeros((X, Y))
+    self.water_map = water.water_map if water else np.zeros((X, Y))
+    self.humidity_map = humidity.humidity_map if humidity else np.zeros((X, Y))
+    self.X = X
+    self.Y = Y
     self.shadow_val = shadow_val
 
-  def draw_map(self, height_map, water_map, humidity_map, file_name):
+  def draw_map(self, file_name):
     pixl_map = []
-    for x in range(self.X):
-      for y in range(self.Y):
-        pt = [x,y,height_map[x][y]+water_map[x][y]]
+    for y in range(self.Y):
+      for x in range(self.X):
+        '''
+        pt = [x, y, self.height_map[x][y] + self.water_map[x][y]]
         shadow = False
         while True:
           pt = [pt[0]-1, pt[1], pt[2]+0.01]
           if pt[2] > 1 or pt[0] < 0 or pt[1] < 0:
             break
-          elif pt[2] < height_map[pt[0]][pt[1]]+water_map[pt[0]][pt[1]]:
+          elif pt[2] < self.height_map[pt[0]][pt[1]]+self.water_map[pt[0]][pt[1]]:
             shadow = True
             break
-        if water_map[x][y] > 0:
-          pixl_map.append(self._river_color(x, y, height_map, water_map))
+        '''
+        if self.water_map[x][y] > 0:
+          pixl_map.append(self._river_color(x, y))
         else:
-          pixl_map.append(self._color_from_height_and_humidity(height_map[x][y], humidity_map[x][y], shadow))
+          pixl_map.append(self._color_from_height_and_humidity(self.height_map[x][y], self.humidity_map[x][y], False))
         
-        if shadow:
-          pixl_map[-1] = tuple((x - self.shadow_val for x in pixl_map[-1]))
 
     img = Image.new('RGB', (self.X, self.Y))
     img.putdata(pixl_map)
-    img.save(file_name)
+    img.save(f'{getcwd()}/results/{file_name}')
 
   def _color_from_height_and_humidity(self, height, humidity, shadow):
     color = ()
@@ -70,29 +80,22 @@ class visulizer:
         color = (196, 212, 170)
       else:                     # SUBTROPICAL DESERT
         color = (233, 221, 199)
+    if shadow:
+     color = tuple((x - self.shadow_val for x in color))
     return color
   
-  def _river_color(self, x, y, height_map, water_map):
-    color = ()
-    if water_map[x][y] > 0.2:
-      color = (46, 89, 158)
-    else:
-      color = (53, 118, 222)
+  def _river_color(self, x, y):
+    color = (68, 108, 175)
 
     waterfall_val = 0
 
-    curr_height = height_map[x][y] + water_map[x][y]
+    curr_height = self.height_map[x][y] + self.water_map[x][y]
     for k in [-1, 0, 1]:
       for l in [-1, 0, 1]:
-        if not k == 0 and not l == 0 and not offset_out_of_bounds([x, y], [k, l], self.X, self.Y) and water_map[x+k][y+l] > 0:
-          adj_height = height_map[x + k][y + l] + water_map[x + k][y + l]
-          if abs(adj_height - curr_height) > 0.1:
-            waterfall_val = 50
-          elif abs(adj_height - curr_height) > 0.05:
-            waterfall_val = 30
-          elif abs(adj_height - curr_height) > 0.01:
-            waterfall_val = 10
+        if not k == 0 and not l == 0 and not offset_out_of_bounds([x, y], [k, l], self.X, self.Y) and self.water_map[x+k][y+l] > 0:
+          adj_height = self.height_map[x + k][y + l] + self.water_map[x + k][y + l]
+          waterfall_val = int(80 * abs(adj_height - curr_height))
+
     color = tuple((x + waterfall_val for x in color))
     return color
 
-  
