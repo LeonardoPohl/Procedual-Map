@@ -26,8 +26,8 @@ def closest_water(x, y, water_map, X, Y):
   for r in range(max(abs(x - X), abs(y - Y))):
     for k in range(r+1):
       for l in [-1*abs(k-r), abs(k-r)]:
-        if water_map[x+k][y+l] > 0:
+        if not offset_out_of_bounds([x, y], [x+k, y+l], X, Y) and water_map[x+k][y+l] > 0:
           return [x+k, y+l]
-        elif water_map[x-k][y+l] > 0:
+        elif not offset_out_of_bounds([x, y], [x-k, y+l], X, Y) and water_map[x-k][y+l] > 0:
           return [x+k, y+l]
   return [x, y]

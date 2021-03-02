@@ -4,8 +4,6 @@ from features import TerrainMap, WaterMap, HumidityMap
 from helper.visualization import Visulizer
 
 if __name__ == '__main__':
-  system('color')
-  
   X = 300
   Y = 200
   shadow_val = 50
@@ -31,3 +29,8 @@ if __name__ == '__main__':
     humidity.generate_humidity_even(i/10)
     visualizer = Visulizer(X, Y, terrain, water, humidity, shadow_val)
     visualizer.draw_map(f'{X}x{Y}_Map_{i/10}_humidity.png')
+  
+  humidity.generate_humidity_even(0.3)
+  humidity.generate_humidity_complex(0.95, False)
+  visualizer = Visulizer(X, Y, terrain, water, humidity, shadow_val)
+  visualizer.draw_map(f'{X}x{Y}_Map_complex_humidity_a={0.95}.png')
