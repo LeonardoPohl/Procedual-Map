@@ -44,7 +44,7 @@ class noise:
   # Worley Noise
   @staticmethod
   def generate_noise_Worley(X, Y, n: int, amplitude: int):
-    print('Generating Woley Noise')
+    print('Generating Worley Noise')
     random_points = np.empty((n,n), dtype = list)
     for i in range(n):
       for j in range(n):

@@ -7,13 +7,13 @@ from helper.visualization import Visulizer
 
 if __name__ == '__main__':
   X = 300
-  Y = 200
+  Y = 300
   shadow_val = 50
-  simple_water = True
+  simple_water = False
   random_humidity = True
   even_humidity = False
   complex_humidity = False
-  civilization = False
+  civilization = True
 
   terrain = TerrainMap.Terrain(X, Y)
   terrain.generate_height(simple_water)
@@ -22,8 +22,7 @@ if __name__ == '__main__':
 
   water = WaterMap.Water(terrain)
   if not simple_water:
-    water.generate_rivers(10)
-    water.generate_lakes(10)
+    water.generate_lakes(15)
   visualizer = Visulizer(X, Y, terrain, water, None, None, shadow_val)
   visualizer.draw_map(f'{X}x{Y}_Map_water.png')
   if complex_humidity:
@@ -34,8 +33,9 @@ if __name__ == '__main__':
   if random_humidity:
     humidity.generate_humidity_random()
     visualizer = Visulizer(X, Y, terrain, water, humidity, None, shadow_val)
-    img_list = visualizer.draw_map(f'{X}x{Y}_Map_humidity.png', True)
-    img_list[0].save(f'{getcwd()}/results/{X}x{Y}_Map_humidity.gif', save_all=True, append_images=img_list[1:], optimize=False, duration=40, loop=0)
+    visualizer.draw_map(f'{X}x{Y}_Map_humidity.png')
+    #img_list = visualizer.draw_map(f'{X}x{Y}_Map_humidity.png', True)
+    #img_list[0].save(f'{getcwd()}/results/{X}x{Y}_Map_humidity.gif', save_all=True, append_images=img_list[1:], optimize=True, duration=300, loop=0, format='GIF')
 
   if even_humidity:
     for i in range(0,11,2):

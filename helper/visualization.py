@@ -21,33 +21,37 @@ class Visulizer:
     self.shadow_val = shadow_val
 
   def draw_map(self, file_name, shadow_gif:bool = False):
-    pixel_list = []
-    for y in range(self.Y):
-      for x in range(self.X):
-        shadow = self.is_shadow(x, y, 0.01) and shadow_gif
-        
-        if self.water_map[x][y] > 0:
-          pixel_list.append(self._river_color(x, y))
-        else:
-          pixel_list.append(self._color_from_height_and_humidity(self.height_map[x][y], self.humidity_map[x][y], shadow))
-
-    self.draw_villages(pixel_list)
-
     if shadow_gif:
       img_list = []
-      for i in range(50):
-        tmp_pixList = copy.deepcopy(pixel_list)
-        img = Image.new('RGB', (self.X, self.Y))
+      for i in range(25):
+        pixel_list = []
         for y in range(self.Y):
           for x in range(self.X):
             shadow = self.is_shadow(x, y, float(i)/100)
-            if shadow:
-              tmp_pixList[y * self.Y + x] = tuple((x - self.shadow_val for x in tmp_pixList[y * self.Y + x]))
-        img.putdata(tmp_pixList)
+            
+            if self.water_map[x][y] > 0:
+              pixel_list.append(self._river_color(x, y))
+            else:
+              pixel_list.append(self._color_from_height_and_humidity(self.height_map[x][y], self.humidity_map[x][y], shadow))
+        img = Image.new('RGB', (self.X, self.Y))
+        img = img.convert('P', dither=None)
+        img.putdata(pixel_list)
         img_list.append(img)
-        print(f'{i*2}% Done', end='\r')
+        print(f'{i*4}% Done', end='\r')
       return img_list
     else:
+      pixel_list = []
+      for y in range(self.Y):
+        for x in range(self.X):
+          shadow = self.is_shadow(x, y, 0.02) and not shadow_gif
+          
+          if self.water_map[x][y] > 0:
+            pixel_list.append(self._river_color(x, y))
+          else:
+            pixel_list.append(self._color_from_height_and_humidity(self.height_map[x][y], self.humidity_map[x][y], shadow))
+        print(f'{int((y/self.Y)*100)}% Done', end='\r')
+
+      self.draw_villages(pixel_list)
       img = Image.new('RGB', (self.X, self.Y))
       img.putdata(pixel_list)
       img.save(f'{getcwd()}/results/{file_name}')
@@ -90,6 +94,8 @@ class Visulizer:
         color = (196, 212, 170)
       else:                     # SUBTROPICAL DESERT
         color = (233, 221, 199)
+    if shadow:
+      color = tuple((x - self.shadow_val for x in color))
     return color
   
   def _river_color(self, x, y):
@@ -108,7 +114,7 @@ class Visulizer:
     return color
 
   def is_shadow(self, x, y, incline):
-    pt = [x, y, self.height_map[x][y]]
+    pt = [x, y, self.height_map[x][y]+self.water_map[x][y]]
     shadow = False
     while True:
       pt = [pt[0]-1, pt[1], pt[2]+incline]
@@ -123,10 +129,11 @@ class Visulizer:
     village_color = (227, 74, 18)
     for village_center in self.village_centers:
       x, y = village_center
-      for r in range(5):
+      pixel_list[y * self.Y + x] = village_color
+      for r in range(4):
         for k in range(r+1):
           for l in [-1*abs(k-r), abs(k-r)]:
             if not offset_out_of_bounds([x, y], [x + k, y + l], self.X, self.Y):
-              pixel_list[(x + k) * self.X + y + l] = village_color
+              pixel_list[(y + l) * self.Y + x + k] = village_color
             elif not offset_out_of_bounds([x, y], [x - k, y + l], self.X, self.Y):
-              pixel_list[(x + k) * self.X + y + l] = village_color
+              pixel_list[(y + l) * self.Y + x - k] = village_color

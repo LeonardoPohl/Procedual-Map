@@ -8,6 +8,8 @@ def offset_out_of_bounds(point_a, offset, max_x, max_y):
 
 def normalise(arr):
   new_arr = np.empty_like(arr)
+  arr_min = arr.min()
+  arr_max = arr.max()
   for x in range(arr.shape[0]):
       for y in range(arr.shape[1]):
         avg = []
@@ -17,7 +19,7 @@ def normalise(arr):
               avg.append(arr[x + k][y + l])
         arr[x][y] = sum(avg)/len(avg)
 
-        new_arr[x][y] = ((arr[x][y] - arr.min())/(arr.max() - arr.min()))
+        new_arr[x][y] = (arr[x][y] - arr_min)/(arr_max - arr_min)
   return new_arr
 
 def closest_water(x, y, water_map, X, Y):
