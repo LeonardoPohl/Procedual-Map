@@ -2,7 +2,6 @@ import numpy as np
 
 from helper.utilities import offset_out_of_bounds, dist, normalise
 from helper.noise import noise
-from helper.utilities import closest_water
 
 class Humidity:
   def __init__(self, water):

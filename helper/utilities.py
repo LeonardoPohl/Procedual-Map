@@ -22,14 +22,3 @@ def normalise(arr):
         new_arr[x][y] = (arr[x][y] - arr_min)/(arr_max - arr_min)
   return new_arr
 
-def closest_water(x, y, water_map, X, Y):
-  if water_map[x][y] > 0:
-    return [x, y]
-  for r in range(max(abs(x - X), abs(y - Y))):
-    for k in range(r+1):
-      for l in [-1*abs(k-r), abs(k-r)]:
-        if not offset_out_of_bounds([x, y], [x+k, y+l], X, Y) and water_map[x+k][y+l] > 0:
-          return [x+k, y+l]
-        elif not offset_out_of_bounds([x, y], [x-k, y+l], X, Y) and water_map[x-k][y+l] > 0:
-          return [x+k, y+l]
-  return [x, y]

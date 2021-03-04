@@ -3,7 +3,7 @@ import numpy as np
 import copy
 from os import getcwd
 
-from helper.utilities import offset_out_of_bounds
+from helper.utilities import offset_out_of_bounds, dist
 from features.TerrainMap import Terrain
 from features.WaterMap import Water
 from features.HumidityMap import Humidity
@@ -11,7 +11,15 @@ from features.VillageMap import Civilization
 
 
 class Visulizer:
-  def __init__(self, X, Y, terrain:Terrain=None, water:Water=None, humidity:Humidity=None, civilization:Civilization = None, shadow_val:int = 50):
+  def __init__(self, 
+                X, 
+                Y, 
+                terrain:Terrain=None, 
+                water:Water=None, 
+                humidity:Humidity=None, 
+                civilization:Civilization = None, 
+                shadow_val:int = 50
+              ):
     self.height_map = terrain.height_map if terrain else np.zeros((X, Y))
     self.water_map = water.water_map if water else np.zeros((X, Y))
     self.humidity_map = humidity.humidity_map if humidity else np.zeros((X, Y))
@@ -30,9 +38,12 @@ class Visulizer:
             shadow = self.is_shadow(x, y, float(i)/100)
             
             if self.water_map[x][y] > 0:
-              pixel_list.append(self._river_color(x, y))
+              color = self._river_color(x, y)
             else:
-              pixel_list.append(self._color_from_height_and_humidity(self.height_map[x][y], self.humidity_map[x][y], shadow))
+              color = self._humidity_height_color(self.height_map[x][y], 
+                                                  self.humidity_map[x][y], 
+                                                  shadow)
+            pixel_list.append(color)
         img = Image.new('RGB', (self.X, self.Y))
         img = img.convert('P', dither=None)
         img.putdata(pixel_list)
@@ -44,11 +55,13 @@ class Visulizer:
       for y in range(self.Y):
         for x in range(self.X):
           shadow = self.is_shadow(x, y, 0.02) and not shadow_gif
-          
           if self.water_map[x][y] > 0:
-            pixel_list.append(self._river_color(x, y))
+            color = self._river_color(x, y)
           else:
-            pixel_list.append(self._color_from_height_and_humidity(self.height_map[x][y], self.humidity_map[x][y], shadow))
+            color = self._humidity_height_color(self.height_map[x][y], 
+                                                self.humidity_map[x][y], 
+                                                shadow)
+          pixel_list.append(color)
         print(f'{int((y/self.Y)*100)}% Done', end='\r')
 
       self.draw_villages(pixel_list)
@@ -56,11 +69,9 @@ class Visulizer:
       img.putdata(pixel_list)
       img.save(f'{getcwd()}/results/{file_name}')
 
-  def _color_from_height_and_humidity(self, height, humidity, shadow):
+  def _humidity_height_color(self, height, humidity, shadow):
     color = ()
-    if (abs(height-.9)<.01 or abs(height-.8)<.01 or abs(height-.7)<.01 or abs(height-.6)<.01 or abs(height-.5)<.01 or abs(height-.4)<.01 or abs(height-.3)<.01 or abs(height-.2)<.01 or abs(height-.1)<.01) and False:
-      color = (196, 46, 0)
-    elif height > .75:
+    if height > .75:
       if humidity > .5:         # SNOW
         color = (245, 245, 245)
       elif humidity > .3:       # TUNDRA
@@ -106,8 +117,11 @@ class Visulizer:
     curr_height = self.height_map[x][y] + self.water_map[x][y]
     for k in [-1, 0, 1]:
       for l in [-1, 0, 1]:
-        if not k == 0 and not l == 0 and not offset_out_of_bounds([x, y], [k, l], self.X, self.Y) and self.water_map[x+k][y+l] > 0:
-          adj_height = self.height_map[x + k][y + l] + self.water_map[x + k][y + l]
+        if (not (k == 0 and l == 0) 
+            and not offset_out_of_bounds([x, y], [k, l], self.X, self.Y) 
+            and self.water_map[x+k][y+l] > 0):
+          adj_height = (self.height_map[x + k][y + l] 
+                      + self.water_map[x + k][y + l])
           waterfall_val = int(80 * abs(adj_height - curr_height))
 
     color = tuple((x + waterfall_val for x in color))
@@ -127,13 +141,18 @@ class Visulizer:
   
   def draw_villages(self, pixel_list):
     village_color = (227, 74, 18)
+    house_color = (130, 98, 46)
+    max_height_diff = 0.1
+    radius = 3
     for village_center in self.village_centers:
       x, y = village_center
-      pixel_list[y * self.Y + x] = village_color
-      for r in range(4):
+      for r in range(radius):
         for k in range(r+1):
           for l in [-1*abs(k-r), abs(k-r)]:
-            if not offset_out_of_bounds([x, y], [x + k, y + l], self.X, self.Y):
+            if not offset_out_of_bounds([x, y], [k, l], self.X, self.Y):
               pixel_list[(y + l) * self.Y + x + k] = village_color
-            elif not offset_out_of_bounds([x, y], [x - k, y + l], self.X, self.Y):
+            elif not offset_out_of_bounds([x, y], [-k, l], self.X, self.Y):
               pixel_list[(y + l) * self.Y + x - k] = village_color
+      
+      
+

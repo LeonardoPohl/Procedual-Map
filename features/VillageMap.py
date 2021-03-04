@@ -5,7 +5,7 @@ from features.TerrainMap import Terrain
 from features.WaterMap import Water
 from features.HumidityMap import Humidity
 
-from helper.utilities import closest_water, dist
+from helper.utilities import dist
 
 class Civilization:
   def __init__(self, X, Y, terrain:Terrain=None, water:Water=None, humidity:Humidity=None):
@@ -49,7 +49,16 @@ class Civilization:
     print(f'{len(self.village_centers)} Villages Generated               ')
 
   def generate_roads(self):
-    pass
+    all_edges = np.empty((0, 3))
+    for a in self.village_centers:
+      for b in self.village_centers:
+        if a != b:
+          all_edges = np.append(all_edges, np.array([a, b, dist(a, b)]))
+    all_edges = all_edges[all_edges[:,2].argsort()]
+    res_edges = np.empty((0,2))
+    while res_edges.size <= len(self.village_centers) - 1:
+      pass
 
-  def generate_houses(self):
-    pass
+    
+
+

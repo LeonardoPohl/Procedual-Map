@@ -19,81 +19,43 @@ class Water:
       
   def _lake_flow(self, point, water_height, epsilon, is_lake=False):
     self.water_map[point[0]][point[1]] = water_height
-    calculating = point
+    calculating = [point[0], point[1], water_height]
     to_calculate = []
     calculaded = []
 
     while True:
       new_to_calculate = []
-      curr_height = self.terrain.height_map[calculating[0]][calculating[1]] + self.water_map[calculating[0]][calculating[1]]/2
+      curr_height = (self.terrain.height_map[calculating[0]][calculating[1]] 
+                    + self.water_map[calculating[0]][calculating[1]]/2)
       for k in [-1, 0, 1]:
         for l in [-1, 0, 1]:
-          if not offset_out_of_bounds(calculating, [k,l], self.X, self.Y) and not (k == 0 and l == 0):
-            pt_height = self.terrain.height_map[calculating[0] + k][calculating[1] + l]# + self.water_map[calculating[0] + k][calculating[1] + l]
-            if [calculating[0] + k, calculating[1] + l] not in calculaded and (curr_height > pt_height + epsilon or not is_lake) and self.water_map[calculating[0]][calculating[1]] > 0:
-              if not to_calculate:
+          if (not offset_out_of_bounds(calculating, [k,l], self.X, self.Y) 
+              and not (k == 0 and l == 0)):
+            pt_height = self.terrain.height_map[calculating[0] + k][calculating[1] + l]
+            if ((curr_height > pt_height + epsilon or not is_lake) 
+                and self.water_map[calculating[0]][calculating[1]] > 0):
+              if not to_calculate or not calculaded:
                 new_to_calculate.append([calculating[0] + k, calculating[1] + l, curr_height - pt_height])
-              else:
-                if not np.any(np.all(np.isin(np.array(to_calculate)[:,[0,1]], np.array([calculating[0] + k, calculating[1] + l]), True), axis=1)):
+              elif (not np.any(np.all(np.isin(np.array(to_calculate)[:,[0,1]], np.array([calculating[0] + k, calculating[1] + l]), True), axis=1)) and
+                    not [calculating[0] + k, calculating[1] + l] in calculaded):
                   new_to_calculate.append([calculating[0] + k, calculating[1] + l, curr_height - pt_height])
-
       if new_to_calculate:
         total_hd = sum(np.array(new_to_calculate)[:,2])
         for new in new_to_calculate:
           if is_lake:
             new[2] = float(self.water_map[calculating[0]][calculating[1]]) * float(new[2]/total_hd) 
-            to_calculate.append(new)
+            if new[2] > 0.0001:
+              to_calculate.append(new)
           elif max(np.array(new_to_calculate)[:,2]) == new[2]:
             new[2] = self.water_map[calculating[0]][calculating[1]] * new[2]/total_hd
             to_calculate.append(new)
             break
-
       if to_calculate:
-        calculaded.append(calculating)
+        calculaded.append([calculating[0], calculating[1]])
         calculating = to_calculate.pop(0)
         self.water_map[calculating[0]][calculating[1]] = calculating[2]
       else:
         break
-    '''
-    self.water_map[point[0]][point[1]] = water_height
-    calculating = [point[0], point[1], water_height]
-    to_calculate = np.empty((0,3))
-    calculaded = np.empty((0,3))
-    i = 0
-    while True:
-      i += 1
-      new_to_calculate = np.empty((0,3))
-      curr_height = self.terrain.height_map[int(calculating[0])][int(calculating[1])] + self.water_map[int(calculating[0])][int(calculating[1])]
-      for k in [-1, 0, 1]:
-        for l in [-1, 0, 1]:
-          new_x, new_y = calculating[0] + k, calculating[1] + l
-          if not offset_out_of_bounds([new_x, new_y], [k, l], self.X, self.Y) and self.water_map[int(new_x)][int(new_y)] == 0 and np.array([new_x, new_y]) not in calculaded[:,[0,1]] and np.array([new_x, new_y]) not in to_calculate[:,[0,1]]:
-            new_height = self.terrain.height_map[int(new_x)][int(new_y)]
-            if new_height < curr_height:
-              new_to_calculate = np.vstack((new_to_calculate, [new_x, new_y, curr_height - new_height]))
-      if new_to_calculate.size > 0:
-        total_height_diff = sum(new_to_calculate[:,2])
-        if total_height_diff > 0:
-          for new in new_to_calculate:
-            new[2] = self.water_map[int(calculating[0])][int(calculating[1])] * new[2]/total_height_diff
-            if new[2] > 0:
-              to_calculate = np.vstack((to_calculate, new))
-      
-      if to_calculate.size > 0:
-        #print(to_calculate)
-        #input()
-        calculaded = np.vstack((calculaded, calculating))
-        #calculaded = np.unique([tuple(row) for row in calculaded], axis=0)
-        #to_calculate = np.unique([tuple(row) for row in to_calculate], axis=0)
-        calculating, to_calculate = to_calculate[0], to_calculate[1:]
-        if np.array_equal(calculating, np.array([0,0,0])):
-          calculating, to_calculate = to_calculate[0], to_calculate[1:]
-        self.water_map[int(calculating[0])][int(calculating[1])] = calculating[2]
-        #print(calculaded)
-      else:
-        print('Lake Created')
-        break
-    '''
     
   def distance_water_map(self):
     print('Calculating distance to Water for each Pixel, this might take a while')
