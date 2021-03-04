@@ -1,20 +1,38 @@
 import numpy as np
 
-from helper.utilities import offset_out_of_bounds, normalise
-from helper.noise import noise
+from helper.Utilities import offset_out_of_bounds, normalise
+from helper.Noise import Noise
 
 class Terrain:
-  def __init__(self, X:int = 100, Y:int = 100):
+  def __init__(self, X:int = 100, Y:int = 100, seed:int=1):
     self.X = X
     self.Y = Y
     self.height_map = np.zeros((X,Y))
     self.water_map = np.zeros((X,Y))
+    np.random.seed(seed)
+    self.seed = seed
 
   def generate_height(self, simple_water):
     print('Generating Height map...     ')
-    #self.height_map = np.array([sum(x) for x in zip(self.height_map, noise.generate_noise_Worley(self.X, self.Y, 30, 1))])
-    self.height_map = np.array([sum(x) for x in zip(self.height_map, noise.generate_noise_weird(self.X, self.Y))])
-    self.height_map = normalise(self.height_map)
+    octaves = 10
+    lacunarity = 2
+    gain = .65
+
+    frequency = .5
+    amplitude = 100
+    res = np.zeros_like(self.height_map)
+    for i in range(octaves):
+      x = np.linspace(0, frequency, self.X, endpoint=False)
+      y = np.linspace(0, frequency, self.Y, endpoint=False)
+      xv, yv = np.meshgrid(y, x)
+      res += amplitude * Noise.generate_noise_perlin(xv, yv, self.seed)
+      amplitude *= gain
+      frequency *= lacunarity
+
+    self.height_map = np.array([sum(x) for x in zip(self.height_map, res)])
+    self.height_map = normalise(self.height_map, True)
+    #self.height_map = np.array([sum(x) for x in zip(self.height_map, Noise.generate_noise_Worley(self.X, self.Y, 30, 1))])
+    #self.height_map = normalise(self.height_map)
     if simple_water:
       self.height_map = np.vectorize(lambda x: x)(self.height_map)
       for x in range(self.X):
@@ -22,4 +40,4 @@ class Terrain:
           if self.height_map[x][y] < 0:
             self.water_map[x][y] = -1*self.height_map[x][y]
     print('Terrain Generated             ')
-    
+

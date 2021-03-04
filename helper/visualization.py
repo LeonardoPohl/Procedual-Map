@@ -3,7 +3,7 @@ import numpy as np
 import copy
 from os import getcwd
 
-from helper.utilities import offset_out_of_bounds, dist
+from helper.Utilities import offset_out_of_bounds, dist
 from features.TerrainMap import Terrain
 from features.WaterMap import Water
 from features.HumidityMap import Humidity
@@ -107,6 +107,9 @@ class Visulizer:
         color = (233, 221, 199)
     if shadow:
       color = tuple((x - self.shadow_val for x in color))
+    if False:
+      color = (int(height*255), int(height*255), int(height*255))
+    
     return color
   
   def _river_color(self, x, y):
@@ -141,18 +144,10 @@ class Visulizer:
   
   def draw_villages(self, pixel_list):
     village_color = (227, 74, 18)
-    house_color = (130, 98, 46)
-    max_height_diff = 0.1
     radius = 3
     for village_center in self.village_centers:
       x, y = village_center
-      for r in range(radius):
-        for k in range(r+1):
-          for l in [-1*abs(k-r), abs(k-r)]:
-            if not offset_out_of_bounds([x, y], [k, l], self.X, self.Y):
-              pixel_list[(y + l) * self.Y + x + k] = village_color
-            elif not offset_out_of_bounds([x, y], [-k, l], self.X, self.Y):
-              pixel_list[(y + l) * self.Y + x - k] = village_color
-      
-      
-
+      for k in [-3, -1, 0, 1, 3]:
+        for l in [-3, -1, 0, 1, 3]:
+          if not offset_out_of_bounds([x, y], [k, l], self.X, self.Y):
+            pixel_list[(y + l) * self.X + (x + k)] = village_color

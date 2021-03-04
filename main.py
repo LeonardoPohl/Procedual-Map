@@ -3,15 +3,15 @@ from sys import argv
 from os import system
 from os import getcwd
 from features import TerrainMap, WaterMap, HumidityMap, VillageMap
-from helper.visualization import Visulizer
+from helper.Visualization import Visulizer
 
 if __name__ == '__main__':
-  X = 300
-  Y = 300
+  X = 1280
+  Y = 720
   shadow_val = 50
   simple_water = False
-  random_humidity = True
-  even_humidity = False
+  random_humidity = False
+  even_humidity = True
   complex_humidity = False
   civilization = True
 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
   if even_humidity:
     for i in range(0,11,2):
       humidity.generate_humidity_even(i/10)
-      visualizer = Visulizer(X, Y, terrain, water, humidity, shadow_val)
+      visualizer = Visulizer(X, Y, terrain, water, humidity, None, shadow_val)
       visualizer.draw_map(f'{X}x{Y}_Map_{i/10}_humidity.png')
   
   if complex_humidity:

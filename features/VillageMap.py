@@ -5,15 +5,16 @@ from features.TerrainMap import Terrain
 from features.WaterMap import Water
 from features.HumidityMap import Humidity
 
-from helper.utilities import dist
+from helper.Utilities import dist
 
 class Civilization:
-  def __init__(self, X, Y, terrain:Terrain=None, water:Water=None, humidity:Humidity=None):
+  def __init__(self, X, Y, terrain:Terrain=None, water:Water=None, humidity:Humidity=None, seed:int=1):
     self.height_map = terrain.height_map if terrain else np.zeros((X, Y))
     self.water_map = water.water_map if water else np.zeros((X, Y))
     self.humidity_map = humidity.humidity_map if humidity else np.zeros((X, Y))
     self.X = X
     self.Y = Y
+    np.random.seed(seed)
     self.village_centers = []
     self.probabilies = np.zeros(X*Y)
     self.coordinates = np.empty_like(self.probabilies, dtype="S10")
@@ -24,8 +25,8 @@ class Civilization:
     for x in range(self.X):
       for y in range(self.Y):
         if self.water_map[x][y] == 0:
-          self.probabilies[x * self.X + y] = self.humidity_map[x][y]
-          self.coordinates[x * self.X + y] = f'{x},{y}'
+          self.probabilies[y * self.Y + x] = self.humidity_map[x][y]
+          self.coordinates[y * self.Y + x] = f'{x},{y}'
       print(f'{int(100*(x+1)/self.X)}% Done', end='\r')
     self.probabilies = self.probabilies / self.probabilies.sum()
     print('Probability Map Generated            ')
@@ -57,8 +58,7 @@ class Civilization:
     all_edges = all_edges[all_edges[:,2].argsort()]
     res_edges = np.empty((0,2))
     while res_edges.size <= len(self.village_centers) - 1:
+      current_edge = all_edges.pop(0)
+      
       pass
-
-    
-
 
