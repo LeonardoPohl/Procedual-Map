@@ -24,6 +24,7 @@ class Visulizer:
     self.water_map = water.water_map if water else np.zeros((X, Y))
     self.humidity_map = humidity.humidity_map if humidity else np.zeros((X, Y))
     self.village_centers = civilization.village_centers if civilization else []
+    self.path = civilization.path if civilization else []
     self.X = X
     self.Y = Y
     self.shadow_val = shadow_val
@@ -63,8 +64,9 @@ class Visulizer:
                                                 shadow)
           pixel_list.append(color)
         print(f'{int((y/self.Y)*100)}% Done', end='\r')
-
-      self.draw_villages(pixel_list)
+      if self.village_centers:
+        self.draw_path(pixel_list)
+        self.draw_villages(pixel_list)
       img = Image.new('RGB', (self.X, self.Y))
       img.putdata(pixel_list)
       img.save(f'{getcwd()}/results/{file_name}')
@@ -144,10 +146,19 @@ class Visulizer:
   
   def draw_villages(self, pixel_list):
     village_color = (227, 74, 18)
-    radius = 3
     for village_center in self.village_centers:
       x, y = village_center
       for k in [-3, -1, 0, 1, 3]:
         for l in [-3, -1, 0, 1, 3]:
           if not offset_out_of_bounds([x, y], [k, l], self.X, self.Y):
             pixel_list[(y + l) * self.X + (x + k)] = village_color
+  
+  def draw_path(self, pixel_list):
+    path_color = (0, 0, 0)
+    for x in range(self.X):
+      for y in range(self.Y):
+        for k in [0, 1]:
+          for l in [0, 1]:
+            if not offset_out_of_bounds([x, y], [k, l], self.X, self.Y) and self.path[x][y] == 1:
+              pixel_list[(y + l) * self.X + (x + k)] = path_color
+      

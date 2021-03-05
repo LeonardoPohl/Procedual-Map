@@ -41,14 +41,9 @@ class Water:
       if new_to_calculate:
         total_hd = sum(np.array(new_to_calculate)[:,2])
         for new in new_to_calculate:
-          if is_lake:
-            new[2] = float(self.water_map[calculating[0]][calculating[1]]) * float(new[2]/total_hd) 
-            if new[2] > 0.000001:
-              to_calculate.append(new)
-          elif max(np.array(new_to_calculate)[:,2]) == new[2]:
-            new[2] = self.water_map[calculating[0]][calculating[1]] * new[2]/total_hd
+          new[2] = float(self.water_map[calculating[0]][calculating[1]]) * float(new[2]/total_hd) 
+          if new[2] > 0.000001:
             to_calculate.append(new)
-            break
       if to_calculate:
         calculating = to_calculate.pop(0)
         self.water_map[calculating[0]][calculating[1]] = calculating[2]

@@ -18,8 +18,6 @@ class Humidity:
     for x in range(self.X):
       for y in range(self.Y):
         self.humidity_map[x][y] = max(a ** dist([x,y], self.water.dist_map[x][y]), self.humidity_map[x][y])
-          
-      print(f'Row {x+1} out of {self.X}')
   
   def generate_humidity_random(self):
     print('Generating Random Humidity...')

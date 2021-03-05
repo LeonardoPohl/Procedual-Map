@@ -6,12 +6,12 @@ from features import TerrainMap, WaterMap, HumidityMap, VillageMap
 from helper.Visualization import Visulizer
 
 if __name__ == '__main__':
-  X = 1280
-  Y = 720
+  X = 500
+  Y = 500
   shadow_val = 50
   simple_water = False
-  random_humidity = False
-  even_humidity = True
+  random_humidity = True
+  even_humidity = False
   complex_humidity = False
   civilization = True
 
@@ -25,6 +25,7 @@ if __name__ == '__main__':
     water.generate_lakes(15)
   visualizer = Visulizer(X, Y, terrain, water, None, None, shadow_val)
   visualizer.draw_map(f'{X}x{Y}_Map_water.png')
+
   if complex_humidity:
     water.distance_water_map()
 
@@ -50,6 +51,7 @@ if __name__ == '__main__':
 
   if civilization:
     civ = VillageMap.Civilization(X, Y, terrain, water, humidity)
-    civ.generate_village_centers(10, min(X,Y)/10, min(X,Y))
+    civ.generate_village_centers(5, min(X,Y)/10, min(X,Y))
+    civ.generate_roads()
     visualizer = Visulizer(X, Y, terrain, water, humidity, civ, shadow_val)
     visualizer.draw_map(f'{X}x{Y}_Map_with_city_centers.png')

@@ -5,7 +5,8 @@ from features.TerrainMap import Terrain
 from features.WaterMap import Water
 from features.HumidityMap import Humidity
 
-from helper.Utilities import dist
+from helper.Utilities import dist, offset_out_of_bounds
+from helper.Graph import Graph
 
 class Civilization:
   def __init__(self, X, Y, terrain:Terrain=None, water:Water=None, humidity:Humidity=None, seed:int=1):
@@ -19,6 +20,7 @@ class Civilization:
     self.probabilies = np.zeros(X*Y)
     self.coordinates = np.empty_like(self.probabilies, dtype="S10")
     self.generate_probability_map()
+    self.path = np.zeros_like(self.height_map)
 
   def generate_probability_map(self):
     print('Generating Probability Map...        ')
@@ -50,15 +52,76 @@ class Civilization:
     print(f'{len(self.village_centers)} Villages Generated               ')
 
   def generate_roads(self):
+    # Kruksal
     all_edges = np.empty((0, 3))
     for a in self.village_centers:
       for b in self.village_centers:
-        if a != b:
-          all_edges = np.append(all_edges, np.array([a, b, dist(a, b)]))
+        if (a != b 
+            and [a, b] not in all_edges[:,[0,1]] 
+            and [b, a] not in all_edges[:,[0,1]]):
+          all_edges = np.vstack((all_edges, [a, b, dist(a, b)]))
+
     all_edges = all_edges[all_edges[:,2].argsort()]
-    res_edges = np.empty((0,2))
-    while res_edges.size <= len(self.village_centers) - 1:
-      current_edge = all_edges.pop(0)
+    res_edges = np.empty((0,3))
+    g = Graph(len(self.village_centers))
+    #print(self.village_centers)
+    while np.unique(res_edges[:,[0,1]]).size < len(self.village_centers):
+      #print(all_edges)
+      current_edge, all_edges = all_edges[0], all_edges[1:]
+      a = current_edge[0]
+      b = current_edge[1]
+      faulty = g.add_edge(self.village_centers.index(a), self.village_centers.index(b))
+      if g.is_cyclic() or faulty:
+        g.remove_last()
+      else:
+        res_edges = np.vstack((res_edges, current_edge))
+        
+    i = 0
+    # Dijkstra
+    print('Not Efficient should be fixed in future')
+    for start, end in res_edges[:,[0,1]]:
+      i += 1
+      print(f'Calculating shortest path from {start} to {end}', end='\r')
+      dst = {}
+      prev = {}
+      queue = []
+      for x in range(self.X):
+        for y in range(self.Y):
+          dst[f'{x},{y}'] = float('inf')
+          prev[f'{x},{y}'] = None
+          queue.append(f'{x},{y}')
       
-      pass
+      dst[f'{start[0]},{start[1]}'] = 0
+      u = ''
+      while queue:
+        print(f'{len(queue)} to go for {start} to {end}', end='\r')
+        for key in dict(sorted(dst.items(), key=lambda item: item[1])):
+          if key in queue:
+            x, y = key.split(',')
+            if dist([int(x), int(y)], end) <= dist(start, end):
+              if u:
+                xn, yn = u.split(',')
+                if dist([int(x), int(y)], end) > dist([int(xn), int(yn)], end):
+                  continue
+              u = key
+              queue.remove(key)
+              break
+        
+        if u == f'{end[0]},{end[1]}':
+          while u:
+            x, y = u.split(',')
+            self.path[int(x)][int(y)] = 1
+            u = prev[u]
+          break
+
+        x, y = u.split(',')
+        for k in [-1, 0, 1]:
+          for l in [-1, 0, 1]:
+            if not (k == 0 and l == 0) and not offset_out_of_bounds([int(x), int(y)], [k, l], self.X, self.Y):
+              new_x, new_y = int(x)+k, int(y)+l
+              alt = dst[u] + abs(self.height_map[new_x][new_y] - self.height_map[int(x)][int(y)]) + self.water_map[new_x][new_y]*2
+              if alt < dst[f'{new_x},{new_y}']:
+                dst[f'{new_x},{new_y}'] = alt
+                prev[f'{new_x},{new_y}'] = u
+      print(f'{i} of {res_edges.shape[0]} done')
 
