@@ -157,8 +157,6 @@ class Visulizer:
     path_color = (0, 0, 0)
     for x in range(self.X):
       for y in range(self.Y):
-        for k in [0, 1]:
-          for l in [0, 1]:
-            if not offset_out_of_bounds([x, y], [k, l], self.X, self.Y) and self.path[x][y] == 1:
-              pixel_list[(y + l) * self.X + (x + k)] = path_color
+        if self.path[x][y] == 1:
+          pixel_list[(y) * self.X + (x)] = path_color
       

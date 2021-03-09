@@ -12,7 +12,7 @@ class Terrain:
     np.random.seed(seed)
     self.seed = seed
 
-  def generate_height(self, simple_water):
+  def generate_height(self, simple_water, water_height):
     print('Generating Height map...     ')
     octaves = 10
     lacunarity = 2
@@ -37,7 +37,7 @@ class Terrain:
       self.height_map = np.vectorize(lambda x: x)(self.height_map)
       for x in range(self.X):
         for y in range(self.Y):
-          if self.height_map[x][y] < 0:
-            self.water_map[x][y] = -1*self.height_map[x][y]
+          if self.height_map[x][y] < water_height:
+            self.water_map[x][y] = water_height - self.height_map[x][y]
     print('Terrain Generated             ')
 

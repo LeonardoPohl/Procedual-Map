@@ -12,9 +12,7 @@ class Humidity:
     np.random.seed(seed)
     
 
-  def generate_humidity_complex(self, a, reset):
-    if reset:
-      self.humidity_map = np.zeros((self.X, self.Y))
+  def generate_humidity_complex(self, a):
     for x in range(self.X):
       for y in range(self.Y):
         self.humidity_map[x][y] = max(a ** dist([x,y], self.water.dist_map[x][y]), self.humidity_map[x][y])
@@ -23,7 +21,7 @@ class Humidity:
     print('Generating Random Humidity...')
     self.humidity_map = np.zeros((self.X, self.Y))
     self.humidity_map = np.array([sum(x) for x in zip(self.humidity_map, Noise.generate_noise_Worley(self.X, self.Y, 30, 1))])
-    self.humidity_map = np.array([sum(x) for x in zip(self.humidity_map, Noise.generate_noise_weird(self.X, self.Y))])
+    #self.humidity_map = np.array([sum(x) for x in zip(self.humidity_map, Noise.generate_noise_weird(self.X, self.Y))])
     self.humidity_map = normalise(self.humidity_map, True)
     print('Random Humidity Generated')
   

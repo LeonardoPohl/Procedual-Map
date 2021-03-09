@@ -5,7 +5,7 @@ class Noise:
   #Weird Noise
   @staticmethod
   def generate_noise_weird(X, Y):
-    print('Generating weird Noise')
+    print('Generating Perlin Noise Medium Article')
     noise_map = np.zeros((X,Y))
     
     # Progressively apply variation to the noise map but changing values + or -
