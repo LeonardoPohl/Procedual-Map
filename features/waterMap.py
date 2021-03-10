@@ -1,5 +1,5 @@
 import numpy as np
-from helper.Utilities import offset_out_of_bounds, dist
+from helper.Utilities import out_of_bounds, dist
 
 class Water:
   def __init__(self, terrain, seed:int=1):
@@ -7,14 +7,14 @@ class Water:
     self.X = terrain.height_map.shape[0]
     self.Y = terrain.height_map.shape[1]
     self.water_map = terrain.water_map
-    self.dist_map = np.full((self.X, self.Y, 2), -1)
+    self.dist_map = np.full((self.X, self.Y), float('inf'))
     np.random.seed(seed)
       
   def generate_lakes(self, n):
     for i in range(n):
       print(f'Generating Lake {i+1}/{n}...        ', end='\r') 
       start_pt = [np.random.randint(self.X), np.random.randint(self.Y)]
-      water_height = (np.random.randint(40)+20)/100
+      water_height = (np.random.randint(10)+10)/100
       self._lake_flow(start_pt, water_height, 0)
     print(f'{n} Lakes Generated           ')
       
@@ -29,7 +29,7 @@ class Water:
                     + self.water_map[calculating[0]][calculating[1]]/2)
       for k in [-1, 0, 1]:
         for l in [-1, 0, 1]:
-          if (not offset_out_of_bounds(calculating, [k,l], self.X, self.Y) 
+          if (not out_of_bounds([calculating[0] + k, calculating[1] + l], self.X, self.Y) 
               and not (k == 0 and l == 0)):
             new_x, new_y = calculating[0] + k, calculating[1] + l
             pt_height = self.terrain.height_map[new_x][new_y]
@@ -41,7 +41,10 @@ class Water:
       if new_to_calculate:
         total_hd = sum(np.array(new_to_calculate)[:,2])
         for new in new_to_calculate:
-          new[2] = float(self.water_map[calculating[0]][calculating[1]]) * float(new[2]/total_hd) 
+          if new[2] == max(np.array(new_to_calculate)[:,2]):
+            new[2] = float(self.water_map[calculating[0]][calculating[1]])
+          else:
+            new[2] = float(self.water_map[calculating[0]][calculating[1]]) * float(new[2]/total_hd) 
           if new[2] > 0.000001:
             to_calculate.append(new)
       if to_calculate:
@@ -52,28 +55,24 @@ class Water:
     
   def distance_water_map(self):
     print('Calculating distance to Water for each Pixel, this might take a while')
+    max_dist = min(self.X, self.Y)/2
+    avg = []
     for x in range(self.X):
       for y in range(self.Y):
         if self.water_map[x][y] > 0:
-          self.dist_map[x][y] = [x, y]
-          continue
-        start_r = 0
-        closer_than_neighbours = False
-        for k in [-1, 0, 1]:
-          for l in [-1, 0, -1]:
-            if not offset_out_of_bounds([x, y], [x+k, y+l], self.X, self.Y) and not np.array_equal(self.dist_map[x+l][y+l], [-1,-1]):
-              if dist([x+k, y+l], self.dist_map[x+l][y+l]) > dist([x, y], self.dist_map[x+l][y+l]):
-                closer_than_neighbours = True
-                self.dist_map[x][y] = self.dist_map[x+l][y+l]
-              else:
-                start_r = int(max(start_r, dist([x+k, y+l], self.dist_map[x+l][y+l])))
-        if not closer_than_neighbours:
-          for r in range(start_r, max(abs(x - self.X), abs(y - self.Y))):
-            for k in range(r+1):
-              for l in [-1*abs(k-r), abs(k-r)]:
-                if not offset_out_of_bounds([x, y], [x+k, y+l], self.X, self.Y) and self.water_map[x+k][y+l] > 0:
-                  self.dist_map[x][y] = [x+k, y+l]
-                elif not offset_out_of_bounds([x, y], [x-k, y+l], self.X, self.Y) and self.water_map[x-k][y+l] > 0:
-                  self.dist_map[x][y] = [x+k, y+l]   
+          self.dist_map[x][y] = 0
+          queue = [[x,y]]
+          while queue:
+            selected = queue.pop(0)
+            if dist([selected[0], selected[1]], [x,y]) <= max_dist: 
+              for k in range(-1,1+1):
+                for l in range(-1,1+1):
+                  if not out_of_bounds([selected[0] + k, selected[1] + l], self.X, self.Y):
+                    nx, ny = selected[0]+k, selected[1]+l
+                    if dist([nx, ny], [x,y]) < self.dist_map[nx][ny]:
+                      self.dist_map[nx][ny] = dist([nx, ny], [x,y])
+                      queue.append([nx, ny])
       print(f'{int(100*(x+1)/self.X)}% Done', end='\r')
+
+    
 

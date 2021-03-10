@@ -1,6 +1,6 @@
 import numpy as np
 
-from helper.Utilities import offset_out_of_bounds, normalise
+from helper.Utilities import out_of_bounds, normalise
 from helper.Noise import Noise
 
 class Terrain:
@@ -31,8 +31,7 @@ class Terrain:
 
     self.height_map = np.array([sum(x) for x in zip(self.height_map, res)])
     self.height_map = normalise(self.height_map, True)
-    #self.height_map = np.array([sum(x) for x in zip(self.height_map, Noise.generate_noise_Worley(self.X, self.Y, 30, 1))])
-    #self.height_map = normalise(self.height_map)
+    
     if simple_water:
       self.height_map = np.vectorize(lambda x: x)(self.height_map)
       for x in range(self.X):

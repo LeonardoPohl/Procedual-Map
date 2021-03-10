@@ -117,14 +117,14 @@ if __name__ == '__main__':
       config['roads'] = 'y' in roads
   else:
     config['X'] = 1280
-    config['Y'] = 1080
+    config['Y'] = 720
     config['simple_water'] = True
-    config['water_height'] = 0.1
-    config['lakes'] = 10
-    config['even_humidity'] = False
-    config['random_humidity'] = True
+    config['water_height'] = 0.3
+    config['lakes'] = 15
+    config['even_humidity'] = True
+    config['random_humidity'] = False
     config['complex_humidity'] = False
-    config['humidity'] = 0
+    config['humidity'] = 0.6
     config['villages'] = True
     config['village_count'] = 6
     config['roads'] = True
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     humidity.generate_humidity_random()
   
   if config['complex_humidity']:
-    humidity.generate_humidity_complex(0.95)
+    humidity.generate_humidity_complex(0.97)
 
   civ = None
   if config['villages']:

@@ -5,7 +5,7 @@ from features.TerrainMap import Terrain
 from features.WaterMap import Water
 from features.HumidityMap import Humidity
 
-from helper.Utilities import dist, offset_out_of_bounds
+from helper.Utilities import dist, out_of_bounds
 from helper.Graph import Graph
 from time import time
 
@@ -84,16 +84,17 @@ class Civilization:
       b = current_edge[1]
       faulty = g.add_edge(poi.index(a), poi.index(b))
       if g.is_cyclic() or faulty:
+        print(a, b)
         g.remove_last()
       else:
         res_edges = np.vstack((res_edges, current_edge))
-        
+
     i = 0
     # Dijkstra
     for start, end in res_edges[:,:2]:
       i += 1
       print(f'Calculating shortest path from {start} to {end}')
-      min_x, max_x, min_y, max_y = min(start[0], end[0]), max(start[0], end[0]), min(start[1], end[1]), max(start[1], end[1])
+      min_x, max_x, min_y, max_y = min(start[0], end[0]), max(start[0], end[0]), min(start[1], end[1]) , max(start[1], end[1])
       dst =  np.array([[x,y,float('inf')] for x in range(min_x, max_x+1) for y in range(min_y, max_y+1)])
       prev = np.full((self.X, self.Y, 2), 0)
       queue = np.array([[float(x), float(y)] for x in range(min_x, max_x+1) for y in range(min_y, max_y+1)])
@@ -109,13 +110,13 @@ class Civilization:
 
         for k in [-1, 0, 1]:
           for l in [-1, 0, 1]:
-            if not (k == 0 and l == 0) and not offset_out_of_bounds([(x - min_x), (y - min_y)], [k, l], (max_x - min_x), (max_y - min_y)):
+            if not (k == 0 and l == 0) and not out_of_bounds([(x - min_x) + k, (y - min_y) + l], (max_x+1 - min_x), (max_y+1 - min_y)):
               new_x, new_y = x + k, y + l
               alt = dst[(x - min_x) * ((max_y+1) - min_y) + (y - min_y)][2] + abs(self.height_map[new_x][new_y] - self.height_map[x][y]) + self.water_map[new_x][new_y]*2
               if alt < dst[(new_x - min_x) * ((max_y+1) - min_y) + (new_y - min_y)][2]:
                 dst[(new_x - min_x) * ((max_y+1) - min_y) + (new_y - min_y)][2] = alt
                 prev[new_x][new_y] = [x, y]
-      print(f'{i} of {res_edges.shape[0]} done')
+      print(f'{i} of {res_edges.shape[0]} done                                   ')
   
   def get_new_key(self, dst, queue): 
     i = np.argsort(dst[:,2])
@@ -130,5 +131,6 @@ class Civilization:
 
   def backtrack(self, u, prev):
     while not np.array_equal(u, [0, 0]):
-      self.path[int(u[0])][int(u[1])] = 1
+      self.path[int(u[0])][int(u[1])] += 1
       u = prev[int(u[0])][int(u[1])]
+    

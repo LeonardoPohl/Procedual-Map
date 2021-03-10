@@ -3,7 +3,7 @@ import numpy as np
 import copy
 from os import getcwd
 
-from helper.Utilities import offset_out_of_bounds, dist
+from helper.Utilities import out_of_bounds, dist
 from features.TerrainMap import Terrain
 from features.WaterMap import Water
 from features.HumidityMap import Humidity
@@ -123,7 +123,7 @@ class Visulizer:
     for k in [-1, 0, 1]:
       for l in [-1, 0, 1]:
         if (not (k == 0 and l == 0) 
-            and not offset_out_of_bounds([x, y], [k, l], self.X, self.Y) 
+            and not out_of_bounds([x + k, y + l], self.X, self.Y) 
             and self.water_map[x+k][y+l] > 0):
           adj_height = (self.height_map[x + k][y + l] 
                       + self.water_map[x + k][y + l])
@@ -150,13 +150,13 @@ class Visulizer:
       x, y = village_center
       for k in [-3, -1, 0, 1, 3]:
         for l in [-3, -1, 0, 1, 3]:
-          if not offset_out_of_bounds([x, y], [k, l], self.X, self.Y):
+          if not out_of_bounds([x + k, y + l], self.X, self.Y):
             pixel_list[(y + l) * self.X + (x + k)] = village_color
   
   def draw_path(self, pixel_list):
     path_color = (0, 0, 0)
     for x in range(self.X):
       for y in range(self.Y):
-        if self.path[x][y] == 1:
+        if self.path[x][y] >= 1:
           pixel_list[(y) * self.X + (x)] = path_color
       
